@@ -132,20 +132,24 @@ class NewNettyAcceptor {
         }
 
         final boolean useFineMetrics = props.boolProp(METRICS_ENABLE_PROPERTY_NAME, false);
-        if (useFineMetrics) {
+//AAA
+        /*        if (useFineMetrics) {
             DropWizardMetricsHandler metricsHandler = new DropWizardMetricsHandler();
             metricsHandler.init(props);
             this.metrics = Optional.of(metricsHandler);
-        } else {
+        } else */
+        {
             this.metrics = Optional.empty();
         }
 
         final boolean useBugSnag = props.boolProp(BUGSNAG_ENABLE_PROPERTY_NAME, false);
-        if (useBugSnag) {
+        //AAA
+        /*        if (useBugSnag) {
             BugSnagErrorsHandler bugSnagHandler = new BugSnagErrorsHandler();
             bugSnagHandler.init(props);
             this.errorsCather = Optional.of(bugSnagHandler);
-        } else {
+        } else */
+        {
             this.errorsCather = Optional.empty();
         }
         initializePlainTCPTransport(mqttHandler, props);

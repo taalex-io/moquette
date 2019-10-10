@@ -182,6 +182,9 @@ public class SessionRegistry {
         final boolean clean = msg.variableHeader().isCleanSession();
         final Queue<SessionRegistry.EnqueuedMessage> sessionQueue =
                     queues.computeIfAbsent(clientId, (String cli) -> queueRepository.createQueue(cli, clean));
+        if (clean) {
+          sessionQueue.clear();
+        }
         final Session newSession;
         if (msg.variableHeader().isWillFlag()) {
             final Session.Will will = createWill(msg);
