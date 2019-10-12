@@ -45,4 +45,14 @@ public class H2SubscriptionsRepository implements ISubscriptionsRepository {
     public void removeSubscription(String topicFilter, String clientID) {
         subscriptions.remove(topicFilter + "-" + clientID);
     }
+
+    @Override
+    public void removeSubscription(String clientID) {
+      String end = "-" + clientID;
+      for(String key : subscriptions.keyList()) {
+        if (key != null && key.endsWith(end)) {
+          subscriptions.remove(key);
+        }
+      }
+    }
 }

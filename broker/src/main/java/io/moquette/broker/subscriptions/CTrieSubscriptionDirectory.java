@@ -102,6 +102,12 @@ public class CTrieSubscriptionDirectory implements ISubscriptionsDirectory {
     }
 
     @Override
+    public void removeSubscription(String clientID) {
+        ctrie.removeFromTree(clientID);
+        this.subscriptionsRepository.removeSubscription(clientID);
+    }
+
+    @Override
     public int size() {
         return ctrie.size();
     }

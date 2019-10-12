@@ -158,35 +158,69 @@ public class CTrie {
     }
 
     private Action remove(String clientId, Topic topic, INode inode, INode iParent) {
-        Token token = topic.headToken();
-        if (!topic.isEmpty() && (inode.mainNode().anyChildrenMatch(token))) {
-            Topic remainingTopic = topic.exceptHeadToken();
-            INode nextInode = inode.mainNode().childOf(token);
-            return remove(clientId, remainingTopic, nextInode, inode);
-        } else {
-            final CNode cnode = inode.mainNode();
-            if (cnode instanceof TNode) {
-                // this inode is a tomb, has no clients and should be cleaned up
-                // Because we implemented cleanTomb below, this should be rare, but possible
-                // Consider calling cleanTomb here too
-                return Action.OK;
-            }
-            if (cnode.containsOnly(clientId) && topic.isEmpty() && cnode.allChildren().isEmpty()) {
-                // last client to leave this node, AND there are no downstream children, remove via TNode tomb
-                if (inode == this.root) {
-                    return inode.compareAndSet(cnode, inode.mainNode().copy()) ? Action.OK : Action.REPEAT;
-                }
-                TNode tnode = new TNode();
-                return inode.compareAndSet(cnode, tnode) ? cleanTomb(inode, iParent) : Action.REPEAT;
-            } else if (cnode.contains(clientId) && topic.isEmpty()) {
-                CNode updatedCnode = cnode.copy();
-                updatedCnode.removeSubscriptionsFor(clientId);
-                return inode.compareAndSet(cnode, updatedCnode) ? Action.OK : Action.REPEAT;
-            } else {
-                //someone else already removed
-                return Action.OK;
-            }
-        }
+      Token token = topic.headToken();
+      if (!topic.isEmpty() && (inode.mainNode().anyChildrenMatch(token))) {
+          Topic remainingTopic = topic.exceptHeadToken();
+          INode nextInode = inode.mainNode().childOf(token);
+          return remove(clientId, remainingTopic, nextInode, inode);
+      } else {
+          final CNode cnode = inode.mainNode();
+          if (cnode instanceof TNode) {
+              // this inode is a tomb, has no clients and should be cleaned up
+              // Because we implemented cleanTomb below, this should be rare, but possible
+              // Consider calling cleanTomb here too
+              return Action.OK;
+          }
+          if (cnode.containsOnly(clientId) && topic.isEmpty() && cnode.allChildren().isEmpty()) {
+              // last client to leave this node, AND there are no downstream children, remove via TNode tomb
+              if (inode == this.root) {
+                  return inode.compareAndSet(cnode, inode.mainNode().copy()) ? Action.OK : Action.REPEAT;
+              }
+              TNode tnode = new TNode();
+              return inode.compareAndSet(cnode, tnode) ? cleanTomb(inode, iParent) : Action.REPEAT;
+          } else if (cnode.contains(clientId) && topic.isEmpty()) {
+              CNode updatedCnode = cnode.copy();
+              updatedCnode.removeSubscriptionsFor(clientId);
+              return inode.compareAndSet(cnode, updatedCnode) ? Action.OK : Action.REPEAT;
+          } else {
+              //someone else already removed
+              return Action.OK;
+          }
+      }
+    }
+
+    public void removeFromTree(String clientID) {
+      Action res;
+      do {
+          res = remove(clientID, this.root, NO_PARENT);
+      } while (res == Action.REPEAT);
+    }
+    
+    private Action remove(String clientId, INode inode, INode iParent) {
+      final CNode cnode = inode.mainNode();
+      for (INode subInode : cnode.allChildren()) {
+        Action res = remove(clientId, subInode, inode);
+      }
+      if (cnode instanceof TNode) {
+          // this inode is a tomb, has no clients and should be cleaned up
+          // Because we implemented cleanTomb below, this should be rare, but possible
+          // Consider calling cleanTomb here too
+          return Action.OK;
+      }
+      if (cnode.containsOnly(clientId) && cnode.allChildren().isEmpty()) {
+          // last client to leave this node, AND there are no downstream children, remove via TNode tomb
+          if (inode == this.root) {
+              return inode.compareAndSet(cnode, inode.mainNode().copy()) ? Action.OK : Action.REPEAT;
+          }
+          TNode tnode = new TNode();
+          return inode.compareAndSet(cnode, tnode) ? cleanTomb(inode, iParent) : Action.REPEAT;
+      } else if (cnode.contains(clientId)) {
+          CNode updatedCnode = cnode.copy();
+          updatedCnode.removeSubscriptionsFor(clientId);
+          return inode.compareAndSet(cnode, updatedCnode) ? Action.OK : Action.REPEAT;
+      } else {
+        return Action.OK;
+      }
     }
 
     /**

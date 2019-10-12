@@ -35,4 +35,6 @@ public interface ISubscriptionsDirectory {
     int size();
 
     String dumpTree();
+
+    void removeSubscription(String clientID);
 }

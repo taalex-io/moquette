@@ -183,6 +183,7 @@ public class SessionRegistry {
         final Queue<SessionRegistry.EnqueuedMessage> sessionQueue =
                     queues.computeIfAbsent(clientId, (String cli) -> queueRepository.createQueue(cli, clean));
         if (clean) {
+          subscriptionsDirectory.removeSubscription(clientId);
           sessionQueue.clear();
         }
         final Session newSession;
