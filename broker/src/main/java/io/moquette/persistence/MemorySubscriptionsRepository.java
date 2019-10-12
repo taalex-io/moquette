@@ -43,4 +43,14 @@ public class MemorySubscriptionsRepository implements ISubscriptionsRepository {
             .findFirst()
             .ifPresent(subscriptions::remove);
     }
+
+    @Override
+    public void removeSubscription(String clientID) {
+      for(int i = subscriptions.size(); i >= 0; i--) {
+        Subscription s = subscriptions.get(i);
+        if (s != null && s.getClientId().equals(clientID)) {
+          subscriptions.remove(s);
+        }
+      }
+    }
 }
