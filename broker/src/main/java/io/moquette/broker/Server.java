@@ -62,6 +62,18 @@ public class Server {
         Runtime.getRuntime().addShutdownHook(new Thread(server::stopServer));
     }
 
+    private IRetainedRepository retainedRepository = null;
+
+    public byte[] fetchBinaryRetainedTopic (String sTopicname) {
+      final List<RetainedMessage> retainedMsgs = retainedRepository.retainedOnTopic(sTopicname);
+      for(RetainedMessage msg : retainedMsgs) {
+        byte[] b = msg.getPayload();
+        if (b != null) {
+          return b;
+        }
+      }
+      return null;
+    }
     /**
      * Starts Moquette bringing the configuration from the file located at m_config/moquette.conf
      *
@@ -162,7 +174,6 @@ public class Server {
 
         final ISubscriptionsRepository subscriptionsRepository;
         final IQueueRepository queueRepository;
-        final IRetainedRepository retainedRepository;
         if (persistencePath != null && !persistencePath.isEmpty()) {
             LOG.trace("Configuring H2 subscriptions store to {}", persistencePath);
             h2Builder = new H2Builder(config, scheduler).initStore();
