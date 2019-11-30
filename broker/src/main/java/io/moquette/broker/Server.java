@@ -64,7 +64,7 @@ public class Server {
 
     private IRetainedRepository retainedRepository = null;
 
-    public byte[] fetchBinaryRetainedTopic (String sTopicname) {
+    public byte[] fetchBinaryRetainedTopic(String sTopicname) {
       final List<RetainedMessage> retainedMsgs = retainedRepository.retainedOnTopic(sTopicname);
       for(RetainedMessage msg : retainedMsgs) {
         byte[] b = msg.getPayload();
