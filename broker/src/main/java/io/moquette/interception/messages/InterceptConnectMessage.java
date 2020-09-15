@@ -18,20 +18,27 @@ package io.moquette.interception.messages;
 
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 
 public class InterceptConnectMessage extends InterceptAbstractMessage {
 
     private final MqttConnectMessage msg;
+    private final SocketAddress client;
 
-    public InterceptConnectMessage(MqttConnectMessage msg) {
+    public InterceptConnectMessage(SocketAddress client, MqttConnectMessage msg) {
         super(msg);
         this.msg = msg;
+        this.client = client;
     }
 
     public String getClientID() {
-        return msg.payload().clientIdentifier();
-    }
+      return msg.payload().clientIdentifier();
+  }
+
+    public String getClientAddress() {
+      return client.toString();
+  }
 
     public boolean isCleanSession() {
         return msg.variableHeader().isCleanSession();

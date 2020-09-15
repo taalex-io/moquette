@@ -26,6 +26,7 @@ import io.netty.handler.codec.mqtt.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -300,5 +301,21 @@ class PostOffice {
             return;
         }
         retainedRepository.retain(topic, msg);
+    }
+
+    /**
+     * notify MqttConnectMessage after connection established (already pass login).
+     * @param msg
+     */
+    void dispatchConnection(SocketAddress client, MqttConnectMessage msg){
+        interceptor.notifyClientConnected(client, msg);
+    }
+
+    void dispatchDisconnection(SocketAddress client, String clientId, String userName){
+        interceptor.notifyClientDisconnected(client, clientId, userName);
+    }
+  
+    void dispatchConnectionLost(SocketAddress client, String clientId, String userName){
+        interceptor.notifyClientConnectionLost(client, clientId, userName);
     }
 }

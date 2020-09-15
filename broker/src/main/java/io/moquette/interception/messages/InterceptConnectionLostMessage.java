@@ -16,14 +16,18 @@
 
 package io.moquette.interception.messages;
 
+import java.net.SocketAddress;
+
 public class InterceptConnectionLostMessage implements InterceptMessage {
 
     private final String clientID;
     private final String username;
+    private final SocketAddress client;
 
-    public InterceptConnectionLostMessage(String clientID, String username) {
+    public InterceptConnectionLostMessage(String clientID, String username, SocketAddress client) {
         this.clientID = clientID;
         this.username = username;
+        this.client = client;
     }
 
     public String getClientID() {
@@ -32,5 +36,9 @@ public class InterceptConnectionLostMessage implements InterceptMessage {
 
     public String getUsername() {
         return username;
+    }
+
+    public String getClientAddress() {
+      return client.toString();
     }
 }
