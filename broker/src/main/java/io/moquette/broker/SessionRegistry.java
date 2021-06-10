@@ -26,6 +26,9 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -63,9 +66,26 @@ public class SessionRegistry {
     private final IQueueRepository queueRepository;
     private final ConcurrentMap<String, Queue<SessionRegistry.EnqueuedMessage>> queues = new ConcurrentHashMap<>();
 
+    private static final HashMap<String, Long> aliveInfoMap = new HashMap<>();
+    
     SessionRegistry(ISubscriptionsDirectory subscriptionsDirectory, IQueueRepository queueRepository) {
         this.subscriptionsDirectory = subscriptionsDirectory;
         this.queueRepository = queueRepository;
+    }
+
+    public static void aliveUpdatePing (String clientId) {
+      aliveInfoMap.put(clientId, System.currentTimeMillis());
+    }
+    
+    public static Long getAliveLastPing (String clientId) {
+      if (!aliveInfoMap.containsKey(clientId)) {
+        aliveInfoMap.put(clientId, System.currentTimeMillis());
+      }
+      return aliveInfoMap.get(clientId);
+    }
+
+    public static Map<String, Long> aliveGetStats () {
+      return Collections.unmodifiableMap(aliveInfoMap);
     }
 
     void bindToSession(MQTTConnection mqttConnection, MqttConnectMessage msg, String clientId) {
