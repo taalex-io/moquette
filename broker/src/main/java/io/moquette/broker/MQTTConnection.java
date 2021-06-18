@@ -73,6 +73,8 @@ final class MQTTConnection {
                 break;
             case PUBLISH:
                 processPublish((MqttPublishMessage) msg);
+
+                SessionRegistry.aliveUpdatePing(getClientId());
                 break;
             case PUBREC:
                 processPubRec(msg);
