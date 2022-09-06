@@ -109,13 +109,17 @@ final class MQTTConnection {
     private void processPubComp(MqttMessage msg) {
         final int messageID = ((MqttMessageIdVariableHeader) msg.variableHeader()).messageId();
         final Session session = sessionRegistry.retrieve(getClientId());
-        session.processPubComp(messageID);
+        if (session != null) {
+            session.processPubComp(messageID);
+        }
     }
 
     private void processPubRec(MqttMessage msg) {
         final int messageID = ((MqttMessageIdVariableHeader) msg.variableHeader()).messageId();
         final Session session = sessionRegistry.retrieve(getClientId());
-        session.processPubRec(messageID);
+        if (session != null) {
+            session.processPubRec(messageID);
+        }
     }
 
     static MqttMessage pubrel(int messageID) {
@@ -126,7 +130,9 @@ final class MQTTConnection {
     private void processPubAck(MqttMessage msg) {
         final int messageID = ((MqttMessageIdVariableHeader) msg.variableHeader()).messageId();
         Session session = sessionRegistry.retrieve(getClientId());
-        session.pubAckReceived(messageID);
+        if (session != null) {
+            session.pubAckReceived(messageID);
+        }
     }
 
     void processConnect(MqttConnectMessage msg) {
@@ -256,13 +262,20 @@ final class MQTTConnection {
         }
         LOG.info("Notifying connection lost event. CId: {}, channel: {}", clientID, channel);
         Session session = sessionRegistry.retrieve(clientID);
-        if (session.hasWill()) {
-            postOffice.fireWill(session.getWill());
-        }
-        if (session.isClean()) {
-            sessionRegistry.remove(clientID);
+        if (session != null) {
+            if (session.hasWill()) {
+                postOffice.fireWill(session.getWill());
+            }
+            if (session.isClean()) {
+                sessionRegistry.remove(clientID);
+            } else {
+                sessionRegistry.disconnect(clientID);
+            }
         } else {
-            sessionRegistry.disconnect(clientID);
+            try {
+                sessionRegistry.remove(clientID);
+            } catch (Throwable t) {
+            }
         }
         connected = false;
         //dispatch connection lost to intercept.
@@ -362,7 +375,9 @@ final class MQTTConnection {
             case EXACTLY_ONCE: {
                 final int messageID = msg.variableHeader().packetId();
                 final Session session = sessionRegistry.retrieve(clientId);
-                session.receivedPublishQos2(messageID, msg);
+                if (session != null) {
+                    session.receivedPublishQos2(messageID, msg);
+                }
                 postOffice.receivedPublishQos2(this, msg, username);
 //                msg.release();
                 break;
@@ -384,7 +399,9 @@ final class MQTTConnection {
     private void processPubRel(MqttMessage msg) {
         final Session session = sessionRegistry.retrieve(getClientId());
         final int messageID = ((MqttMessageIdVariableHeader) msg.variableHeader()).messageId();
-        session.receivedPubRelQos2(messageID);
+        if (session != null) {
+            session.receivedPubRelQos2(messageID);
+        }
         sendPubCompMessage(messageID);
     }
 
@@ -416,7 +433,9 @@ final class MQTTConnection {
         if (channel.isWritable()) {
             LOG.debug("Channel {} is again writable", channel);
             final Session session = sessionRegistry.retrieve(getClientId());
-            session.writabilityChanged();
+            if (session != null) {
+                session.writabilityChanged();
+            }
         }
     }
 
@@ -484,7 +503,9 @@ final class MQTTConnection {
 
     public void resendNotAckedPublishes() {
         final Session session = sessionRegistry.retrieve(getClientId());
-        session.resendInflightNotAcked();
+        if (session != null) {
+            session.resendInflightNotAcked();
+        }
     }
 
     int nextPacketId() {
